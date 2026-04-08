@@ -1,0 +1,49 @@
+---
+title: "Untitled"
+format: 
+  html:
+    embed-resources: true # this stops a bunch of useless files from being created
+message: false
+bibliography: references.bib
+
+---
+
+## Quarto
+
+Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+
+## Running Code
+
+### love the code innit
+
+So *funny* working on **markdown** again *takes* me back to
+
+- obsidian
+- bear
+- other notetakers...
+
+When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+
+```{r}
+1 + 1
+```
+
+You can add options to executable code like this
+
+```{r}
+2 * 2
+```
+
+The `echo: false` option disables the printing of code (only output is displayed).
+
+### Insert citations!!
+
+[@oke2020; @oke2020a]
+
+### playing with code chunks
+
+```{r}
+#| echo: false
+x <- c(1, 3, 5, 7)
+x^2
+```

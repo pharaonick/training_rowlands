@@ -6,4 +6,4 @@ This is a really great report about important stuff
 
 ## Course analyses
 
-- Data visualization (link coming soon)
+- [Data visualization](notebooks/data-visualization.html)

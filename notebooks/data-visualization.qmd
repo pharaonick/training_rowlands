@@ -21,6 +21,8 @@ library(janitor) # data wrangling i.e. clean_names !!
 
 library(ggplot2)
 library(plotly) # interactive graphics
+library(DT)
+library(leaflet)
 ```
 
 ```{r}
@@ -141,4 +143,9 @@ facet_plot
 ```{r}
 ggplotly(facet_plot, tooltip = c("x", "y"))
 
+```
+
+## Show an interactive table using DT
+```{r}
+datatable(delta_visits) # various options for how it displays
 ```

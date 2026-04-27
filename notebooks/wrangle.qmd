@@ -1,0 +1,177 @@
+---
+title: "data wrangling"
+format: 
+  html:
+    embed-resources: true
+---
+
+# Clean and wrangle data
+## Setup
+```{r}
+library(dplyr)
+library(tidyr)
+library(readr)
+```
+
+## Source data
+### Read data
+```{r}
+#| label: code chunk name
+catch_original <- read_csv("https://knb.ecoinformatics.org/knb/d1/mn/v2/object/df35b.302.1")
+```
+
+```{r}
+colnames(catch_original)
+head(catch_original)
+summary(catch_original)
+glimpse(catch_original)
+```
+
+## Clean and reshape data
+
+```{r}
+catch_data <- catch_original %>% 
+    select(Region, Year, Chinook, Sockeye, Coho, Pink, Chum)
+```
+
+NB you can use select to change colnames as you select, e.g. 
+```{r}
+catch_data2 <- catch_original %>% 
+    select(Region, Year, Total = All)
+```
+
+Note that designing data tables with `starts_with()` and `ends_with()` in mind is smart becuase it's a good way
+to help cleaning because you can easily select/exclude certain types of column i.e. variable
+
+### Chinook should not be char
+```{r}
+catch_clean <- catch_data %>% 
+    mutate(Chinook = if_else(
+        Chinook == "I",
+        "1", # can't go straight to numeric because data is currently chr
+        Chinook
+    )) %>% 
+    mutate(Chinook = as.numeric(Chinook))
+
+catch_clean2 <- catch_data %>% 
+    mutate(Chinook = if_else(
+        Chinook == "I",
+        1,
+        as.numeric(Chinook)
+    ))
+
+which(is.na(catch_clean$Chinook))
+```
+
+### Go from wide to long
+```{r}
+catch_long <- catch_clean %>% 
+    pivot_longer(col = -c(Region, Year),
+        names_to = "species",
+        values_to = "catch_thousands"
+    )
+```
+
+### Long to wide
+```{r}
+catch_wide <- catch_long %>% 
+    pivot_wider(
+        names_from = species,
+        values_from = catch_thousands,
+        values_fill = 0 # anything missing is 0
+    )
+head(catch_wide)
+```
+
+### Clean long - make the catch in thousands
+```{r}
+catch_long <- catch_long %>% # careful overwriting here, only do if doing something super simple
+    mutate(catch = catch_thousands * 1000) %>% 
+    select(-catch_thousands)
+head(catch_long)
+```
+
+```{r}
+mean_region <- catch_long %>% 
+    group_by(Region) %>% # doesn't change data, just creates a kind of internal flag identifying and storing the groups
+    summarize(mean_catch = mean(catch, na.rm = TRUE), .groups = "drop") %>% 
+    arrange(desc(mean_catch)) # else default is to alphabetize by grouped variable
+head(mean_region)
+
+# good practice to remove NA even if you already have! .groups drop ungroups after doing the operation
+```
+
+## Filter
+```{r}
+sse_catch <- catch_long %>% 
+    filter(Region == "SSE")
+
+head(sse_catch)
+```
+
+## Split, combine
+
+CHECK THIS
+```{r}
+sites_df <- data.frame(site = c("HAW-101", "HAW-103", "OAH-320", "OAH-219", "MAU-039"))
+
+sites_df <- sites_df %>% 
+    separate_wider_delim(
+        cols = site, 
+        delim = "-",
+        names = c("island", "site_number"),
+        cols_remove = FALSE)
+
+# Check that out
+head(sites_df)
+```
+
+
+```{r}
+dates_df %>% 
+    unite(
+        col = date,
+        year, month, day,
+        sep = "-",
+        remove = FALSE
+    )
+```
+
+
+# Put it all together
+
+```{r}
+library(dplyr)
+library(tidyr)
+library(readr)
+
+# grab the data
+catch_original <- read_csv(file = "https://knb.ecoinformatics.org/knb/d1/mn/v2/object/df35b.302.1",
+    show_col_types = FALSE)
+
+# Drop unwanted columns, fix "I" typo, reshape to long, transform catch
+# into individual fish count, calculate mean catch by region, and sort
+# in descending order
+mean_region <- catch_original %>%
+    select(-All, -notesRegCode) %>% 
+    mutate(
+        Chinook = if_else(Chinook == "I", 
+            true = "1", false = Chinook),
+        Chinook = as.numeric(Chinook)) %>% 
+    pivot_longer(-c(Region, Year), 
+        names_to = "species", 
+        values_to = "catch") %>%
+    mutate(catch = catch*1000) %>% 
+    group_by(Region) %>% 
+    summarize(mean_catch = mean(catch, na.rm = TRUE),
+        .groups = "drop") %>% 
+    arrange(dplyr::desc(mean_catch))
+
+
+
+# Check the result
+head(mean_region)
+
+```
+
+

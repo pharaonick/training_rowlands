@@ -95,15 +95,16 @@ pop_joined_sf <- st_join(pop_3338_sf,
 
 ### get rid of the sticky geometry column and summarize by region
 WHYWHYWHYWHYWHYWHYWHY CHECK THIS
+It's related to how the geo data would be incorporated into the group by in ways that can make it messy
 ```{r}
 pop_rgn_df <- pop_joined_sf %>%
     st_drop_geometry() %>%
     group_by(region) %>%
     summarize(total_pop = sum(population))
 
-pop_rgn_df2 <- pop_joined_sf %>%
-    group_by(region) %>%
-    summarize(total_pop = sum(population))
+# pop_rgn_df2 <- pop_joined_sf %>%
+#     group_by(region) %>%
+#     summarize(total_pop = sum(population))
 ```
 
 This has no spatial data now but we can join back to a df that does have spatial info:

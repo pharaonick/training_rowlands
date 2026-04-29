@@ -1,0 +1,95 @@
+---
+title: "Functions practice"
+author: "meeeeeeeeeeeeeeeeeeeeeeeee"
+format: html
+---
+
+## setup
+
+```{r}
+### For data wrangling and plotting
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(purrr) ### for iteration using map() family of functions
+
+library(palmerpenguins) ### example data
+```
+
+```{r}
+airtemps <- c(212, 30.3, 78, 32)
+celsius1 <- (airtemps[1] - 32) * 5/9
+
+```
+
+```{r}
+convert_f_to_c <- function(fahr) {
+  celsius <- (fahr - 32) * 5/9
+  return(celsius)
+}
+
+celsius <- convert_f_to_c(fahr = airtemps[1])
+
+celsius == celsius1
+```
+
+
+```{r}
+convert_temp <- function(t, scale = "f") {
+    scale = tolower(substr(scale, 1, 1))
+    if(!scale %in% c("c", "f")) {
+        stop("Scale must be either 'c' or 'f'")
+    }
+    if(scale == "c") {
+        result <- t * 9/5 + 32
+    }
+    else {
+        result <- (t - 32) * 5/9
+    }
+    return(result) # return ends the function so anything after is ignored
+}
+
+convert_temp(t = airtemps, scale = "c")
+convert_temp(t = airtemps)
+convert_temp(t = airtemps, scale = "celsius")
+
+```
+
+
+
+### environment
+FUNCTIONS DON'T CHANGE VARIABLES IN YOUR GLOBAL ENV; WHAT HAPPENS IN FUNCTION STAYS IN FUNCTION
+YOU CAN RETURN STUFF AND THEN REASSIGN THAT E.G. `a <- add_one(a)`
+Note this function below is weird and does stuff that doesn't mean anything it's for ed only
+```{r}
+a <- 1       ### create object a in parent environment
+
+add_one <- function(x) {
+  x <- x + 1 ### increment argument by 1
+  a <- a + 2 ### modify a in function environment
+  b <- a + 3 ### create b in function environment
+  return(x)  ### only x is returned back to parent
+}
+
+add_one(a)   ### give `a` as arg to the function; returns the value a + 1
+a <- add_one(a)
+```
+
+### functions for iteration
+
+```{r}
+library(palmerpenguins)
+data(penguins) # loads the dataset
+spp_vec <- unique(penguins$species)
+
+calc_bill_model <- function(spp, df) {
+    spp_df <- df %>%
+        filter(species == spp)
+    bill_mdl <- lm(bill_length_mm ~ bill_depth_mm, data = spp_df)
+    return(bill_mdl)
+}
+map_results <- purrr::map(.x = spp_vec, .f = calc_bill_model, df = penguins) #.x is the first argument to the function definition so you could just put the species type here e.g Adelie
+broom::tidy(map_results[[3]])
+lapply_results <- base::lapply(X = spp_vec, FUN = calc_bill_model, df = penguins)
+broom::tidy(lapply_results[[3]])
+```
